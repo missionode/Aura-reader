@@ -1,0 +1,98 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aura Frequency Sensor</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background: #f5f5f5;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+    }
+    .section {
+      margin-bottom: 2rem;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    pre {
+      background: #000;
+      color: #0f0;
+      padding: 1rem;
+      overflow-x: auto;
+      font-size: 0.85rem;
+    }
+    @media(max-width: 600px) {
+      pre {
+        font-size: 0.7rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Aura Frequency Sensor</h1>  <div class="section">
+    <h2>Microphone Frequency Analysis</h2>
+    <pre id="micOutput">Initializing...</pre>
+  </div>  <div class="section">
+    <h2>Magnetometer</h2>
+    <pre id="magOutput">Initializing...</pre>
+  </div>  <div class="section">
+    <h2>Accelerometer</h2>
+    <pre id="accOutput">Initializing...</pre>
+  </div>  <script>
+    // Microphone Frequency Analysis
+    async function startMic() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const analyser = audioContext.createAnalyser();
+        const source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
+        analyser.fftSize = 256;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        function drawMic() {
+          analyser.getByteFrequencyData(dataArray);
+          document.getElementById("micOutput").textContent = dataArray.join(", ");
+          requestAnimationFrame(drawMic);
+        }
+        drawMic();
+      } catch (err) {
+        document.getElementById("micOutput").textContent = "Microphone access denied or unavailable.";
+      }
+    }
+
+    // Magnetometer (if available)
+    if ('Magnetometer' in window) {
+      const magnetometer = new Magnetometer();
+      magnetometer.addEventListener('reading', () => {
+        document.getElementById("magOutput").textContent =
+          `X: ${magnetometer.x.toFixed(2)} µT\nY: ${magnetometer.y.toFixed(2)} µT\nZ: ${magnetometer.z.toFixed(2)} µT`;
+      });
+      magnetometer.start();
+    } else {
+      document.getElementById("magOutput").textContent = "Magnetometer not supported.";
+    }
+
+    // Accelerometer (if available)
+    if ('Accelerometer' in window) {
+      const accel = new Accelerometer();
+      accel.addEventListener('reading', () => {
+        document.getElementById("accOutput").textContent =
+          `X: ${accel.x.toFixed(2)} m/s²\nY: ${accel.y.toFixed(2)} m/s²\nZ: ${accel.z.toFixed(2)} m/s²`;
+      });
+      accel.start();
+    } else {
+      document.getElementById("accOutput").textContent = "Accelerometer not supported.";
+    }
+
+    startMic();
+  </script></body>
+</html>
