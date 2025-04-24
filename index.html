@@ -28,6 +28,17 @@
       overflow-x: auto;
       font-size: 0.85rem;
     }
+    button {
+      display: block;
+      margin: 1rem auto;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+    }
     @media(max-width: 600px) {
       pre {
         font-size: 0.7rem;
@@ -36,17 +47,18 @@
   </style>
 </head>
 <body>
-  <h1>Aura Frequency Sensor</h1>  <div class="section">
+  <h1>Aura Frequency Sensor</h1><button onclick="startSensors()">Start Sensors</button>
+
+  <div class="section">
     <h2>Microphone Frequency Analysis</h2>
-    <pre id="micOutput">Initializing...</pre>
+    <pre id="micOutput">Click 'Start Sensors' to begin...</pre>
   </div>  <div class="section">
     <h2>Magnetometer</h2>
-    <pre id="magOutput">Initializing...</pre>
+    <pre id="magOutput">Click 'Start Sensors' to begin...</pre>
   </div>  <div class="section">
     <h2>Accelerometer</h2>
-    <pre id="accOutput">Initializing...</pre>
+    <pre id="accOutput">Click 'Start Sensors' to begin...</pre>
   </div>  <script>
-    // Microphone Frequency Analysis
     async function startMic() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -76,34 +88,44 @@
       }
     }
 
-    // Magnetometer (if available)
-    if ('Magnetometer' in window || 'Sensor' in window) {
-      try {
-        const magnetometer = new Magnetometer();
-        magnetometer.addEventListener('reading', () => {
-          document.getElementById("magOutput").textContent =
-            `X: ${magnetometer.x.toFixed(2)} µT\nY: ${magnetometer.y.toFixed(2)} µT\nZ: ${magnetometer.z.toFixed(2)} µT`;
-        });
-        magnetometer.start();
-      } catch (err) {
-        document.getElementById("magOutput").textContent = "Magnetometer present but cannot be started.";
+    function startMagnetometer() {
+      if ('Magnetometer' in window) {
+        try {
+          const magnetometer = new Magnetometer();
+          magnetometer.addEventListener('reading', () => {
+            document.getElementById("magOutput").textContent =
+              `X: ${magnetometer.x.toFixed(2)} µT\nY: ${magnetometer.y.toFixed(2)} µT\nZ: ${magnetometer.z.toFixed(2)} µT`;
+          });
+          magnetometer.start();
+        } catch (err) {
+          document.getElementById("magOutput").textContent = "Magnetometer present but cannot be started.";
+        }
+      } else {
+        document.getElementById("magOutput").textContent = "Magnetometer not supported.";
       }
-    } else {
-      document.getElementById("magOutput").textContent = "Magnetometer not supported.";
     }
 
-    // Accelerometer (if available)
-    if ('Accelerometer' in window) {
-      const accel = new Accelerometer();
-      accel.addEventListener('reading', () => {
-        document.getElementById("accOutput").textContent =
-          `X: ${accel.x.toFixed(2)} m/s²\nY: ${accel.y.toFixed(2)} m/s²\nZ: ${accel.z.toFixed(2)} m/s²`;
-      });
-      accel.start();
-    } else {
-      document.getElementById("accOutput").textContent = "Accelerometer not supported.";
+    function startAccelerometer() {
+      if ('Accelerometer' in window) {
+        try {
+          const accel = new Accelerometer();
+          accel.addEventListener('reading', () => {
+            document.getElementById("accOutput").textContent =
+              `X: ${accel.x.toFixed(2)} m/s²\nY: ${accel.y.toFixed(2)} m/s²\nZ: ${accel.z.toFixed(2)} m/s²`;
+          });
+          accel.start();
+        } catch (err) {
+          document.getElementById("accOutput").textContent = "Accelerometer present but cannot be started.";
+        }
+      } else {
+        document.getElementById("accOutput").textContent = "Accelerometer not supported.";
+      }
     }
 
-    startMic();
+    function startSensors() {
+      startMic();
+      startMagnetometer();
+      startAccelerometer();
+    }
   </script></body>
 </html>
