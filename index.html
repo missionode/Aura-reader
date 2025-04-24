@@ -58,25 +58,36 @@
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
 
-        function drawMic() {
-          analyser.getByteFrequencyData(dataArray);
-          document.getElementById("micOutput").textContent = dataArray.join(", ");
-          requestAnimationFrame(drawMic);
+        function calculateAverage(arr) {
+          const sum = arr.reduce((a, b) => a + b, 0);
+          return (sum / arr.length).toFixed(2);
         }
-        drawMic();
+
+        function updateMicOutput() {
+          analyser.getByteFrequencyData(dataArray);
+          const avg = calculateAverage(dataArray);
+          document.getElementById("micOutput").textContent = `Average Frequency Amplitude: ${avg}`;
+        }
+
+        setInterval(updateMicOutput, 2000); // Update every 2 seconds
+
       } catch (err) {
         document.getElementById("micOutput").textContent = "Microphone access denied or unavailable.";
       }
     }
 
     // Magnetometer (if available)
-    if ('Magnetometer' in window) {
-      const magnetometer = new Magnetometer();
-      magnetometer.addEventListener('reading', () => {
-        document.getElementById("magOutput").textContent =
-          `X: ${magnetometer.x.toFixed(2)} µT\nY: ${magnetometer.y.toFixed(2)} µT\nZ: ${magnetometer.z.toFixed(2)} µT`;
-      });
-      magnetometer.start();
+    if ('Magnetometer' in window || 'Sensor' in window) {
+      try {
+        const magnetometer = new Magnetometer();
+        magnetometer.addEventListener('reading', () => {
+          document.getElementById("magOutput").textContent =
+            `X: ${magnetometer.x.toFixed(2)} µT\nY: ${magnetometer.y.toFixed(2)} µT\nZ: ${magnetometer.z.toFixed(2)} µT`;
+        });
+        magnetometer.start();
+      } catch (err) {
+        document.getElementById("magOutput").textContent = "Magnetometer present but cannot be started.";
+      }
     } else {
       document.getElementById("magOutput").textContent = "Magnetometer not supported.";
     }
